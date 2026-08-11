@@ -1,5 +1,4 @@
-import { useState } from 'react'
-
+import { useState, type ReactNode } from 'react'
 import {
   Bar,
   CartesianGrid,
@@ -16,651 +15,333 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-
 import {
-  TrendingUp,
-  TrendingDown,
-  PiggyBank,
   ChartNoAxesCombined,
-  WalletCards,
-  Percent,
-  House,
-  Target,
   Flame,
+  House,
+  Percent,
+  PiggyBank,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  WalletCards,
 } from 'lucide-react'
 
 import {
-  dummyMonthlyData,
   dummyInvestmentData,
+  dummyMonthlyData,
   dummyNetWorthData,
 } from './dummyData'
 
+const currency = (value: number, decimals = 2) =>
+  `$${value.toLocaleString('en-SG', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })}`
+
+const CHART_COLORS = [
+  '#2563eb',
+  '#dc2626',
+  '#f59e0b',
+  '#7c3aed',
+  '#16a34a',
+  '#0891b2',
+  '#db2777',
+  '#65a30d',
+  '#ea580c',
+  '#4f46e5',
+  '#0f766e',
+  '#9333ea',
+  '#b91c1c',
+  '#0369a1',
+  '#a16207',
+  '#15803d',
+]
+
+type SummaryCardProps = {
+  title: string
+  value: string
+  subtitle: ReactNode
+  icon: ReactNode
+  iconClass: string
+  valueClass?: string
+}
+
+function SummaryCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  iconClass,
+  valueClass = '',
+}: SummaryCardProps) {
+  return (
+    <div className="summary-card">
+      <div className="card-heading">
+        <div className={`card-icon ${iconClass}`}>
+          {icon}
+        </div>
+        <p>{title}</p>
+      </div>
+
+      <h2 className={valueClass}>{value}</h2>
+      <div className="card-subtitle">{subtitle}</div>
+    </div>
+  )
+}
+
+type GoalProps = {
+  title: string
+  current: number
+  target: number
+  progress: number
+  icon: ReactNode
+  theme: 'purple' | 'orange'
+  note: string
+}
+
+function Goal({
+  title,
+  current,
+  target,
+  progress,
+  icon,
+  theme,
+  note,
+}: GoalProps) {
+  return (
+    <div className="goal">
+      <div className="goal-heading">
+        <div className="goal-title">
+          <div className={`goal-icon ${theme}`}>
+            {icon}
+          </div>
+          <strong>{title}</strong>
+        </div>
+
+        <span className={`goal-percent ${theme}`}>
+          {progress.toFixed(0)}%
+        </span>
+      </div>
+
+      <div className="goal-values">
+        <span>{currency(current, 0)}</span>
+        <span>{currency(target, 0)}</span>
+      </div>
+
+      <div className="progress-bar">
+        <div
+          className={`progress-fill ${theme}`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className="goal-note">{note}</div>
+    </div>
+  )
+}
+
+function MonthTick({ x, y, payload }: any) {
+  const [month, year] = String(payload.value).split(' ')
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        textAnchor="middle"
+        fill="#666"
+        fontSize={12}
+      >
+        <tspan x={0} dy={22}>
+          {month}
+        </tspan>
+        <tspan x={0} dy={16}>
+          {year}
+        </tspan>
+      </text>
+    </g>
+  )
+}
+
 function App() {
-  const [monthlyData] = useState<any[]>(dummyMonthlyData)
-  const [investmentData] = useState<any[]>(dummyInvestmentData)
-  const [netWorthData] = useState<any[]>(dummyNetWorthData)
   const [selectedYear, setSelectedYear] = useState(2026)
 
-  const MonthTick = ({
-    x,
-    y,
-    payload,
-  }: any) => {
-    const [month, year] =
-      String(payload.value).split(' ')
-
-    return (
-      <g
-        transform={`translate(${x},${y})`}
-      >
-        <text
-          x={0}
-          y={0}
-          textAnchor="middle"
-          fill="#666"
-          fontSize={12}
-        >
-          <tspan
-            x={0}
-            dy={22}
-          >
-            {month}
-          </tspan>
-
-          <tspan
-            x={0}
-            dy={16}
-          >
-            {year}
-          </tspan>
-        </text>
-      </g>
-    )
-  }
-
-  // =========================
-  // YEAR FILTERS
-  // =========================
-
-  const yearlyMonthlyData = monthlyData.filter(
-    (item) =>
-      String(item.month).includes(
-        String(selectedYear),
-      ),
+  const yearlyMonthlyData = dummyMonthlyData.filter((item) =>
+    item.month.includes(String(selectedYear)),
   )
 
-  const yearlyInvestmentData = investmentData.filter(
-    (item) =>
-      String(item.month).includes(
-        String(selectedYear),
-      ),
+  const yearlyInvestmentData = dummyInvestmentData.filter((item) =>
+    item.month.includes(String(selectedYear)),
   )
 
-  const yearlyNetWorthData = netWorthData.filter(
-    (item) =>
-      String(item.month).includes(
-        String(selectedYear),
-      ),
+  const yearlyNetWorthData = dummyNetWorthData.filter((item) =>
+    item.month.includes(String(selectedYear)),
   )
-
-  // =========================
-  // LATEST VALUES
-  // =========================
 
   const latestMonth = yearlyMonthlyData
-    .filter(
-      (item) =>
-        item.income > 0 ||
-        item.expenses > 0,
-    )
+    .filter((item) => item.income > 0 || item.expenses > 0)
     .at(-1)
 
   const latestInvestment = yearlyInvestmentData
-    .filter(
-      (item) =>
-        item.currentValue > 0,
-    )
+    .filter((item) => item.currentValue > 0)
     .at(-1)
 
   const latestNetWorth = yearlyNetWorthData
-    .filter(
-      (item) =>
-        item.netWorth > 0,
-    )
+    .filter((item) => item.netWorth > 0)
     .at(-1)
 
   const savings = latestMonth
-    ? latestMonth.income -
-      latestMonth.expenses
+    ? latestMonth.income - latestMonth.expenses
     : 0
 
   const savingsRate =
-    latestMonth &&
-    latestMonth.income > 0
-      ? (savings /
-          latestMonth.income) *
-        100
+    latestMonth && latestMonth.income > 0
+      ? (savings / latestMonth.income) * 100
       : 0
 
-  const savingsRateColor =
-    savingsRate < 20
-      ? '#dc2626'
-      : '#16a34a'
+  const houseTarget = 770000 * 0.25
+  const houseCurrent = latestNetWorth?.cashPlusOA ?? 0
+  const houseProgress = Math.min(
+    (houseCurrent / houseTarget) * 100,
+    100,
+  )
+
+  const liquidTarget = 120000
+  const liquidCurrent = latestNetWorth?.liquid ?? 0
+  const liquidProgress = Math.min(
+    (liquidCurrent / liquidTarget) * 100,
+    100,
+  )
+
+  const spendingData =
+    latestMonth?.categories.filter((item) => item.amount > 0) ?? []
+
+  const monthLabel =
+    latestMonth?.month ?? `No ${selectedYear} data`
 
   return (
     <main className="dashboard">
-
-      {/* HEADER */}
-      <header
-        className="dashboard-header"
-        style={{
-          display: 'grid',
-          gridTemplateColumns:
-            '1fr auto 1fr',
-          alignItems: 'center',
-          gap: 20,
-        }}
-      >
-
-        {/* LEFT */}
+      <header className="dashboard-header">
         <div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
+          <div className="dashboard-title">
             <Flame
               size={30}
               color="#f97316"
               fill="#f97316"
             />
+            <h1>Road to FAT FIRE — Demo</h1>
+          </div>
+          <p>{selectedYear} Overview</p>
+        </div>
 
-            <h1
-              style={{
-                margin: 0,
-              }}
+        <div className="year-selector">
+          {[2026, 2027].map((year) => (
+            <button
+              key={year}
+              className={selectedYear === year ? 'active' : ''}
+              onClick={() => setSelectedYear(year)}
             >
-              Road to FAT FIRE — Demo
-            </h1>
-          </div>
-
-          <p>
-            {selectedYear} Overview
-          </p>
+              {year}
+            </button>
+          ))}
         </div>
 
-        {/* MIDDLE - YEAR TOGGLE */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              backgroundColor:
-                '#f1f5f9',
-              padding: 4,
-              borderRadius: 10,
-              gap: 4,
-            }}
-          >
-            {[2026, 2027].map(
-              (year) => (
-                <button
-                  key={year}
-                  onClick={() =>
-                    setSelectedYear(
-                      year,
-                    )
-                  }
-                  style={{
-                    border: 'none',
-                    padding:
-                      '8px 18px',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    backgroundColor:
-                      selectedYear ===
-                      year
-                        ? '#ffffff'
-                        : 'transparent',
-                    color:
-                      selectedYear ===
-                      year
-                        ? '#111827'
-                        : '#64748b',
-                    boxShadow:
-                      selectedYear ===
-                      year
-                        ? '0 1px 3px rgba(0,0,0,0.12)'
-                        : 'none',
-                  }}
-                >
-                  {year}
-                </button>
-              ),
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT */}
-        <div
-          style={{
-            textAlign: 'right',
-          }}
-        >
-          <p>
-            Sample Data · Portfolio Project
-          </p>
-        </div>
-
+        <p className="demo-label">
+          Sample Data · Portfolio Project
+        </p>
       </header>
 
-      {/* SUMMARY CARDS */}
       <section className="summary-grid">
+        <SummaryCard
+          title="Income"
+          value={latestMonth ? currency(latestMonth.income) : '$0.00'}
+          subtitle={monthLabel}
+          icon={<TrendingUp size={18} />}
+          iconClass="green"
+        />
 
-        {/* INCOME */}
-        <div className="summary-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor:
-                  '#dcfce7',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:
-                  'center',
-              }}
-            >
-              <TrendingUp
-                size={18}
-                color="#16a34a"
-              />
-            </div>
+        <SummaryCard
+          title="Expenses"
+          value={latestMonth ? currency(latestMonth.expenses) : '$0.00'}
+          subtitle={monthLabel}
+          icon={<TrendingDown size={18} />}
+          iconClass="red"
+        />
 
-            <p
-              style={{
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Income
-            </p>
-          </div>
+        <SummaryCard
+          title="Savings"
+          value={currency(savings)}
+          subtitle={monthLabel}
+          icon={<PiggyBank size={18} />}
+          iconClass="blue"
+        />
 
-          <h2>
-            {latestMonth
-              ? `$${latestMonth.income.toLocaleString(
-                  'en-SG',
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  },
-                )}`
-              : '$0.00'}
-          </h2>
+        <SummaryCard
+          title="Investments"
+          value={
+            latestInvestment
+              ? currency(latestInvestment.currentValue)
+              : '$0.00'
+          }
+          subtitle={
+            latestInvestment ? (
+              <>
+                <span
+                  className={
+                    latestInvestment.gainPercent >= 0
+                      ? 'positive'
+                      : 'negative'
+                  }
+                >
+                  {latestInvestment.gainPercent >= 0 ? '+' : ''}
+                  {(latestInvestment.gainPercent * 100).toFixed(1)}% gain
+                </span>
+                <span className="card-month">
+                  {latestInvestment.month}
+                </span>
+              </>
+            ) : (
+              `No ${selectedYear} data`
+            )
+          }
+          icon={<ChartNoAxesCombined size={18} />}
+          iconClass="purple"
+        />
 
-          <span>
-            {latestMonth?.month ??
-              `No ${selectedYear} data`}
-          </span>
-        </div>
+        <SummaryCard
+          title="Net Worth"
+          value={
+            latestNetWorth
+              ? currency(latestNetWorth.netWorth)
+              : '$0.00'
+          }
+          subtitle={
+            latestNetWorth?.month ?? `No ${selectedYear} data`
+          }
+          icon={<WalletCards size={18} />}
+          iconClass="teal"
+        />
 
-        {/* EXPENSES */}
-        <div className="summary-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor:
-                  '#fee2e2',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:
-                  'center',
-              }}
-            >
-              <TrendingDown
-                size={18}
-                color="#dc2626"
-              />
-            </div>
-
-            <p
-              style={{
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Expenses
-            </p>
-          </div>
-
-          <h2>
-            {latestMonth
-              ? `$${latestMonth.expenses.toLocaleString(
-                  'en-SG',
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  },
-                )}`
-              : '$0.00'}
-          </h2>
-
-          <span>
-            {latestMonth?.month ??
-              `No ${selectedYear} data`}
-          </span>
-        </div>
-
-        {/* SAVINGS */}
-        <div className="summary-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor:
-                  '#dbeafe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:
-                  'center',
-              }}
-            >
-              <PiggyBank
-                size={18}
-                color="#2563eb"
-              />
-            </div>
-
-            <p
-              style={{
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Savings
-            </p>
-          </div>
-
-          <h2>
-            {`$${savings.toLocaleString(
-              'en-SG',
-              {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              },
-            )}`}
-          </h2>
-
-          <span>
-            {latestMonth?.month ??
-              `No ${selectedYear} data`}
-          </span>
-        </div>
-
-        {/* INVESTMENTS */}
-        <div className="summary-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor:
-                  '#ede9fe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:
-                  'center',
-              }}
-            >
-              <ChartNoAxesCombined
-                size={18}
-                color="#7c3aed"
-              />
-            </div>
-
-            <p
-              style={{
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Investments
-            </p>
-          </div>
-
-          <h2>
-            {latestInvestment
-              ? `$${latestInvestment.currentValue.toLocaleString(
-                  'en-SG',
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  },
-                )}`
-              : '$0.00'}
-          </h2>
-
-          {latestInvestment ? (
-            <>
-              <span
-                style={{
-                  color:
-                    latestInvestment.gainPercent >=
-                    0
-                      ? '#16a34a'
-                      : '#dc2626',
-                  fontWeight: 600,
-                }}
-              >
-                {latestInvestment.gainPercent >=
-                0
-                  ? '+'
-                  : ''}
-                {(
-                  latestInvestment.gainPercent *
-                  100
-                ).toFixed(1)}
-                % gain
-              </span>
-
-              <div
-                style={{
-                  marginTop: 8,
-                  fontSize: 13,
-                  color: '#777',
-                }}
-              >
-                {latestInvestment.month}
-              </div>
-            </>
-          ) : (
-            <span>
-              No {selectedYear} data
-            </span>
-          )}
-        </div>
-
-        {/* NET WORTH */}
-        <div className="summary-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor:
-                  '#ccfbf1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:
-                  'center',
-              }}
-            >
-              <WalletCards
-                size={18}
-                color="#0d9488"
-              />
-            </div>
-
-            <p
-              style={{
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Net Worth
-            </p>
-          </div>
-
-          <h2>
-            {latestNetWorth
-              ? `$${latestNetWorth.netWorth.toLocaleString(
-                  'en-SG',
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  },
-                )}`
-              : '$0.00'}
-          </h2>
-
-          <span>
-            {latestNetWorth?.month ??
-              `No ${selectedYear} data`}
-          </span>
-        </div>
-
-        {/* SAVINGS RATE */}
-        <div className="summary-card">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor:
-                  '#ffedd5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:
-                  'center',
-              }}
-            >
-              <Percent
-                size={18}
-                color="#ea580c"
-              />
-            </div>
-
-            <p
-              style={{
-                fontWeight: 600,
-                margin: 0,
-              }}
-            >
-              Savings Rate
-            </p>
-          </div>
-
-          <h2
-            style={{
-              color:
-                savingsRateColor,
-            }}
-          >
-            {savingsRate.toFixed(1)}%
-          </h2>
-
-          <span>
-            {latestMonth?.month ??
-              `No ${selectedYear} data`}
-          </span>
-        </div>
-
+        <SummaryCard
+          title="Savings Rate"
+          value={`${savingsRate.toFixed(1)}%`}
+          subtitle={monthLabel}
+          icon={<Percent size={18} />}
+          iconClass="orange"
+          valueClass={
+            savingsRate < 20 ? 'negative' : 'positive'
+          }
+        />
       </section>
 
-      {/* DASHBOARD CHARTS */}
       <section className="dashboard-grid">
-
-        {/* MONTHLY CASH FLOW */}
         <div className="panel large-panel">
-          <h2>
-            Monthly Cash Flow
-          </h2>
+          <h2>Monthly Cash Flow</h2>
 
-          <div
-            style={{
-              width: '100%',
-              height: 380,
-            }}
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+          <div className="chart cash-flow-chart">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={yearlyMonthlyData.filter(
-                  (item) =>
-                    item.income > 0 ||
-                    item.expenses > 0,
+                  (item) => item.income > 0 || item.expenses > 0,
                 )}
                 margin={{
                   top: 10,
@@ -679,30 +360,17 @@ function App() {
 
                 <YAxis
                   tickFormatter={(value) =>
-                    `$${(
-                      value / 1000
-                    ).toFixed(0)}k`
+                    `$${(value / 1000).toFixed(0)}k`
                   }
                 />
 
                 <Tooltip
                   formatter={(value) =>
-                    `$${Number(
-                      value,
-                    ).toLocaleString(
-                      'en-SG',
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )}`
+                    currency(Number(value))
                   }
                 />
 
-                <Legend
-                  verticalAlign="bottom"
-                  height={28}
-                />
+                <Legend verticalAlign="bottom" height={28} />
 
                 <Line
                   type="monotone"
@@ -710,12 +378,8 @@ function App() {
                   name="Income"
                   stroke="#16a34a"
                   strokeWidth={3}
-                  dot={{
-                    fill: '#16a34a',
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
+                  dot={{ fill: '#16a34a' }}
+                  activeDot={{ r: 6 }}
                 />
 
                 <Line
@@ -724,34 +388,19 @@ function App() {
                   name="Expenses"
                   stroke="#dc2626"
                   strokeWidth={3}
-                  dot={{
-                    fill: '#dc2626',
-                  }}
-                  activeDot={{
-                    r: 6,
-                  }}
+                  dot={{ fill: '#dc2626' }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* SPENDING BY CATEGORY */}
         <div className="panel">
-          <h2>
-            Spending by Category
-          </h2>
+          <h2>Spending by Category</h2>
 
-          <div
-            style={{
-              width: '100%',
-              height: 520,
-            }}
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+          <div className="chart spending-chart">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart
                 margin={{
                   top: 50,
@@ -761,13 +410,7 @@ function App() {
                 }}
               >
                 <Pie
-                  data={(
-                    latestMonth?.categories ??
-                    []
-                  ).filter(
-                    (item: any) =>
-                      item.amount > 0,
-                  )}
+                  data={spendingData}
                   dataKey="amount"
                   nameKey="category"
                   cx="50%"
@@ -784,40 +427,24 @@ function App() {
                     name,
                     value,
                   }: any) => {
-                    const RADIAN =
-                      Math.PI / 180
-
-                    const radius =
-                      outerRadius + 16
+                    const radian = Math.PI / 180
+                    const radius = outerRadius + 16
 
                     const x =
                       cx +
                       radius *
-                        Math.cos(
-                          -midAngle *
-                            RADIAN,
-                        )
+                        Math.cos(-midAngle * radian)
 
                     const y =
                       cy +
                       radius *
-                        Math.sin(
-                          -midAngle *
-                            RADIAN,
-                        )
-
-                    const textAnchor =
-                      x > cx
-                        ? 'start'
-                        : 'end'
+                        Math.sin(-midAngle * radian)
 
                     return (
                       <text
                         x={x}
                         y={y}
-                        textAnchor={
-                          textAnchor
-                        }
+                        textAnchor={x > cx ? 'start' : 'end'}
                         dominantBaseline="central"
                         fontSize={13}
                         fill="#333"
@@ -830,92 +457,33 @@ function App() {
                           {name}
                         </tspan>
 
-                        <tspan
-                          x={x}
-                          dy="1.4em"
-                          fontWeight={400}
-                        >
-                          {`$${Number(
-                            value,
-                          ).toLocaleString(
-                            'en-SG',
-                            {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            },
-                          )}`}
+                        <tspan x={x} dy="1.4em">
+                          {currency(Number(value))}
                         </tspan>
                       </text>
                     )
                   }}
                 >
-                  {(
-                    latestMonth?.categories ??
-                    []
-                  )
-                    .filter(
-                      (item: any) =>
-                        item.amount > 0,
-                    )
-                    .map(
-                      (
-                        _: any,
-                        index: number,
-                      ) => {
-                        const colors = [
-                          '#2563eb',
-                          '#dc2626',
-                          '#f59e0b',
-                          '#7c3aed',
-                          '#16a34a',
-                          '#0891b2',
-                          '#db2777',
-                          '#65a30d',
-                          '#ea580c',
-                          '#4f46e5',
-                          '#0f766e',
-                          '#9333ea',
-                          '#b91c1c',
-                          '#0369a1',
-                          '#a16207',
-                          '#15803d',
+                  {spendingData.map((_, index) => (
+                    <Cell
+                      key={index}
+                      fill={
+                        CHART_COLORS[
+                          index % CHART_COLORS.length
                         ]
-
-                        return (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              colors[
-                                index %
-                                  colors.length
-                              ]
-                            }
-                          />
-                        )
-                      },
-                    )}
+                      }
+                    />
+                  ))}
                 </Pie>
 
-                {/* TOTAL IN CENTRE */}
                 <text
                   x="50%"
                   y="48%"
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="#222"
-                  fontSize={18}
-                  fontWeight={700}
+                  className="pie-total"
                 >
-                  {`$${Number(
-                    latestMonth?.expenses ??
-                      0,
-                  ).toLocaleString(
-                    'en-SG',
-                    {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    },
-                  )}`}
+                  {currency(latestMonth?.expenses ?? 0)}
                 </text>
 
                 <text
@@ -923,24 +491,14 @@ function App() {
                   y="54%"
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="#666"
-                  fontSize={13}
-                  fontWeight={500}
+                  className="pie-total-label"
                 >
                   Total
                 </text>
 
                 <Tooltip
                   formatter={(value) =>
-                    `$${Number(
-                      value,
-                    ).toLocaleString(
-                      'en-SG',
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )}`
+                    currency(Number(value))
                   }
                 />
               </PieChart>
@@ -948,301 +506,38 @@ function App() {
           </div>
         </div>
 
-        {/* GOALS */}
         <div className="panel">
           <h2>Goals</h2>
 
-          {/* HOUSE DOWNPAYMENT */}
-          {(() => {
-            const houseTarget =
-              770000 * 0.25
+          <Goal
+            title="House Downpayment"
+            current={houseCurrent}
+            target={houseTarget}
+            progress={houseProgress}
+            icon={<House size={19} />}
+            theme="purple"
+            note="25% of $770,000"
+          />
 
-            const houseCurrent =
-              latestNetWorth?.cashPlusOA ??
-              0
-
-            const houseProgress =
-              houseTarget > 0
-                ? Math.min(
-                    (
-                      houseCurrent /
-                      houseTarget
-                    ) * 100,
-                    100,
-                  )
-                : 0
-
-            return (
-              <div className="goal">
-
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent:
-                      'space-between',
-                    alignItems:
-                      'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems:
-                        'center',
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        backgroundColor:
-                          '#f3e8ff',
-                        display: 'flex',
-                        alignItems:
-                          'center',
-                        justifyContent:
-                          'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <House
-                        size={19}
-                        color="#8b5cf6"
-                      />
-                    </div>
-
-                    <strong>
-                      House Downpayment
-                    </strong>
-                  </div>
-
-                  <span
-                    style={{
-                      fontWeight: 700,
-                      color: '#8b5cf6',
-                    }}
-                  >
-                    {houseProgress.toFixed(
-                      0,
-                    )}
-                    %
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent:
-                      'space-between',
-                    marginTop: 10,
-                    marginBottom: 8,
-                    fontSize: 13,
-                    color: '#666',
-                  }}
-                >
-                  <span>
-                    $
-                    {houseCurrent.toLocaleString(
-                      'en-SG',
-                      {
-                        maximumFractionDigits: 0,
-                      },
-                    )}
-                  </span>
-
-                  <span>
-                    $
-                    {houseTarget.toLocaleString(
-                      'en-SG',
-                      {
-                        maximumFractionDigits: 0,
-                      },
-                    )}
-                  </span>
-                </div>
-
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: `${houseProgress}%`,
-                      backgroundColor:
-                        '#8b5cf6',
-                    }}
-                  />
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 7,
-                    fontSize: 12,
-                    color: '#888',
-                  }}
-                >
-                  25% of $770,000
-                </div>
-              </div>
-            )
-          })()}
-
-          {/* LIQUID ASSET TARGET */}
-          {(() => {
-            const liquidTarget =
-              120000
-
-            const liquidCurrent =
-              latestNetWorth?.liquid ??
-              0
-
-            const liquidProgress =
-              liquidTarget > 0
-                ? Math.min(
-                    (
-                      liquidCurrent /
-                      liquidTarget
-                    ) * 100,
-                    100,
-                  )
-                : 0
-
-            return (
-              <div
-                className="goal"
-                style={{
-                  marginTop: 30,
-                }}
-              >
-
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent:
-                      'space-between',
-                    alignItems:
-                      'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems:
-                        'center',
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        backgroundColor:
-                          '#ffedd5',
-                        display: 'flex',
-                        alignItems:
-                          'center',
-                        justifyContent:
-                          'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Target
-                        size={19}
-                        color="#f97316"
-                      />
-                    </div>
-
-                    <strong>
-                      Liquid Asset Target
-                    </strong>
-                  </div>
-
-                  <span
-                    style={{
-                      fontWeight: 700,
-                      color: '#f97316',
-                    }}
-                  >
-                    {liquidProgress.toFixed(
-                      0,
-                    )}
-                    %
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent:
-                      'space-between',
-                    marginTop: 10,
-                    marginBottom: 8,
-                    fontSize: 13,
-                    color: '#666',
-                  }}
-                >
-                  <span>
-                    $
-                    {liquidCurrent.toLocaleString(
-                      'en-SG',
-                      {
-                        maximumFractionDigits: 0,
-                      },
-                    )}
-                  </span>
-
-                  <span>
-                    $120,000
-                  </span>
-                </div>
-
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: `${liquidProgress}%`,
-                      backgroundColor:
-                        '#06b6d4',
-                    }}
-                  />
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 7,
-                    fontSize: 12,
-                    color: '#888',
-                  }}
-                >
-                  Target by Dec 2026
-                </div>
-              </div>
-            )
-          })()}
-
+          <Goal
+            title="Liquid Asset Target"
+            current={liquidCurrent}
+            target={liquidTarget}
+            progress={liquidProgress}
+            icon={<Target size={19} />}
+            theme="orange"
+            note="Target by Dec 2026"
+          />
         </div>
 
-        {/* INVESTMENT GROWTH */}
         <div className="panel large-panel">
-          <h2>
-            Investment Growth
-          </h2>
+          <h2>Investment Growth</h2>
 
-          <div
-            style={{
-              width: '100%',
-              height: 420,
-            }}
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+          <div className="chart investment-chart">
+            <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={yearlyInvestmentData.filter(
-                  (item) =>
-                    item.currentValue > 0,
+                  (item) => item.currentValue > 0,
                 )}
                 margin={{
                   top: 20,
@@ -1261,46 +556,25 @@ function App() {
 
                 <YAxis
                   tickFormatter={(value) =>
-                    `$${(
-                      value / 1000
-                    ).toFixed(0)}k`
+                    `$${(value / 1000).toFixed(0)}k`
                   }
                 />
 
                 <Tooltip
-                  formatter={(
-                    value,
-                    name,
-                  ) => [
-                    `$${Number(
-                      value,
-                    ).toLocaleString(
-                      'en-SG',
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )}`,
+                  formatter={(value, name) => [
+                    currency(Number(value)),
                     name,
                   ]}
                 />
 
-                <Legend
-                  verticalAlign="bottom"
-                  height={28}
-                />
+                <Legend verticalAlign="bottom" height={28} />
 
                 <Bar
                   dataKey="monthlyDeposit"
                   name="Monthly Contribution"
                   fill="#0891b2"
                   barSize={35}
-                  radius={[
-                    5,
-                    5,
-                    0,
-                    0,
-                  ]}
+                  radius={[5, 5, 0, 0]}
                 />
 
                 <Line
@@ -1313,9 +587,7 @@ function App() {
                     fill: '#7c3aed',
                     r: 4,
                   }}
-                  activeDot={{
-                    r: 6,
-                  }}
+                  activeDot={{ r: 6 }}
                 />
 
                 <Line
@@ -1328,32 +600,18 @@ function App() {
                     fill: '#f59e0b',
                     r: 4,
                   }}
-                  activeDot={{
-                    r: 6,
-                  }}
+                  activeDot={{ r: 6 }}
                 />
-
               </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* NET WORTH COMPOSITION */}
         <div className="panel large-panel">
-          <h2>
-            Net Worth Composition
-          </h2>
+          <h2>Net Worth Composition</h2>
 
-          <div
-            style={{
-              width: '100%',
-              height: 420,
-            }}
-          >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
+          <div className="chart net-worth-chart">
+            <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={yearlyNetWorthData.filter(
                   (item) =>
@@ -1367,9 +625,7 @@ function App() {
                   left: 10,
                 }}
               >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                />
+                <CartesianGrid strokeDasharray="3 3" />
 
                 <XAxis
                   dataKey="month"
@@ -1381,94 +637,47 @@ function App() {
 
                 <YAxis
                   tickFormatter={(value) =>
-                    `$${(
-                      value / 1000
-                    ).toFixed(0)}k`
+                    `$${(value / 1000).toFixed(0)}k`
                   }
                 />
 
                 <Tooltip
-                  formatter={(
-                    value,
-                    name,
-                  ) => [
-                    `$${Number(
-                      value,
-                    ).toLocaleString(
-                      'en-SG',
-                      {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      },
-                    )}`,
+                  formatter={(value, name) => [
+                    currency(Number(value), 0),
                     name,
                   ]}
                 />
 
-                <Legend
-                  verticalAlign="bottom"
-                  height={28}
-                />
+                <Legend verticalAlign="bottom" height={28} />
 
-                {/* NON-LIQUID ASSETS */}
                 <Bar
                   dataKey="nonLiquid"
                   name="Non-Liquid Assets"
                   stackId="networth"
                   fill="#8b5cf6"
-                  radius={[
-                    0,
-                    0,
-                    0,
-                    0,
-                  ]}
                 />
 
-                {/* LIQUID ASSETS */}
                 <Bar
                   dataKey="liquid"
                   name="Liquid Assets"
                   stackId="networth"
                   fill="#06b6d4"
-                  radius={[
-                    0,
-                    0,
-                    0,
-                    0,
-                  ]}
                 >
                   <LabelList
                     dataKey="netWorth"
                     position="top"
                     offset={8}
-                    formatter={(
-                      value: any,
-                    ) =>
-                      `$${Number(
-                        value,
-                      ).toLocaleString(
-                        'en-SG',
-                        {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0,
-                        },
-                      )}`
+                    formatter={(value: any) =>
+                      currency(Number(value), 0)
                     }
-                    style={{
-                      fill: '#222',
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}
+                    className="net-worth-label"
                   />
                 </Bar>
-
               </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
-
       </section>
-
     </main>
   )
 }

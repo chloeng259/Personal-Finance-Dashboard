@@ -1,32 +1,11 @@
-# React + TypeScript + Vite
+# Personal Finance Dashboard 
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+An interactive dashboard for personal finances tracking, including income, expenses, savings, investments, net worth and progress towards financial goals.
 
-Currently, two official plugins are available:
+The dashboard provides yearly views, automated financial calculations and interactive visualisations for easier monitoring of financial performance and trends over time.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> This public demo uses fictional sample data. The original version is connected to Google Sheets for automated data updates.
 
-## React Compiler
+## Built With
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+React • TypeScript • Recharts • Google Sheets

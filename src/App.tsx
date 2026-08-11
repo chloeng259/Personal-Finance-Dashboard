@@ -41,6 +41,44 @@ function App() {
   const [netWorthData] = useState<any[]>(dummyNetWorthData)
   const [selectedYear, setSelectedYear] = useState(2026)
 
+  const MonthTick = ({
+    x,
+    y,
+    payload,
+  }: any) => {
+    const [month, year] =
+      String(payload.value).split(' ')
+
+    return (
+      <g
+        transform={`translate(${x},${y})`}
+      >
+        <text
+          x={0}
+          y={0}
+          dy={16}
+          textAnchor="middle"
+          fill="#666"
+          fontSize={12}
+        >
+          <tspan
+            x={0}
+            dy="0"
+          >
+            {month}
+          </tspan>
+
+          <tspan
+            x={0}
+            dy="1.2em"
+          >
+            {year}
+          </tspan>
+        </text>
+      </g>
+    )
+  }
+
   // =========================
   // YEAR FILTERS
   // =========================
@@ -145,7 +183,7 @@ function App() {
                 margin: 0,
               }}
             >
-              Road to FAT FIRE
+              Road to FAT FIRE — Demo
             </h1>
           </div>
 
@@ -218,7 +256,7 @@ function App() {
           }}
         >
           <p>
-            Demo Data
+            Sample Data · Portfolio Project
           </p>
         </div>
 
@@ -612,7 +650,7 @@ function App() {
           <div
             style={{
               width: '100%',
-              height: 320,
+              height: 340,
             }}
           >
             <ResponsiveContainer
@@ -635,6 +673,8 @@ function App() {
                 <XAxis
                   dataKey="month"
                   interval={0}
+                  height={48}
+                  tick={<MonthTick />}
                 />
 
                 <YAxis
@@ -1189,7 +1229,7 @@ function App() {
           <div
             style={{
               width: '100%',
-              height: 380,
+              height: 400,
             }}
           >
             <ResponsiveContainer
@@ -1211,9 +1251,8 @@ function App() {
                 <XAxis
                   dataKey="month"
                   interval={0}
-                  tick={{
-                    fontSize: 12,
-                  }}
+                  height={48}
+                  tick={<MonthTick />}
                 />
 
                 <YAxis
@@ -1301,7 +1340,7 @@ function App() {
           <div
             style={{
               width: '100%',
-              height: 380,
+              height: 400,
             }}
           >
             <ResponsiveContainer
@@ -1328,6 +1367,8 @@ function App() {
                 <XAxis
                   dataKey="month"
                   interval={0}
+                  height={48}
+                  tick={<MonthTick />}
                 />
 
                 <YAxis

@@ -56,21 +56,20 @@ function App() {
         <text
           x={0}
           y={0}
-          dy={16}
           textAnchor="middle"
           fill="#666"
           fontSize={12}
         >
           <tspan
             x={0}
-            dy="0"
+            dy={22}
           >
             {month}
           </tspan>
 
           <tspan
             x={0}
-            dy="1.2em"
+            dy={16}
           >
             {year}
           </tspan>
@@ -650,7 +649,7 @@ function App() {
           <div
             style={{
               width: '100%',
-              height: 340,
+              height: 380,
             }}
           >
             <ResponsiveContainer
@@ -666,14 +665,15 @@ function App() {
                 margin={{
                   top: 10,
                   right: 35,
-                  bottom: 10,
+                  bottom: 35,
                   left: 10,
                 }}
               >
                 <XAxis
                   dataKey="month"
                   interval={0}
-                  height={48}
+                  height={64}
+                  tickMargin={8}
                   tick={<MonthTick />}
                 />
 
@@ -699,7 +699,10 @@ function App() {
                   }
                 />
 
-                <Legend />
+                <Legend
+                  verticalAlign="bottom"
+                  height={28}
+                />
 
                 <Line
                   type="monotone"
@@ -1229,7 +1232,7 @@ function App() {
           <div
             style={{
               width: '100%',
-              height: 400,
+              height: 420,
             }}
           >
             <ResponsiveContainer
@@ -1244,14 +1247,15 @@ function App() {
                 margin={{
                   top: 20,
                   right: 35,
-                  bottom: 10,
+                  bottom: 35,
                   left: 15,
                 }}
               >
                 <XAxis
                   dataKey="month"
                   interval={0}
-                  height={48}
+                  height={64}
+                  tickMargin={8}
                   tick={<MonthTick />}
                 />
 
@@ -1281,7 +1285,10 @@ function App() {
                   ]}
                 />
 
-                <Legend />
+                <Legend
+                  verticalAlign="bottom"
+                  height={28}
+                />
 
                 <Bar
                   dataKey="monthlyDeposit"
@@ -1340,7 +1347,7 @@ function App() {
           <div
             style={{
               width: '100%',
-              height: 400,
+              height: 420,
             }}
           >
             <ResponsiveContainer
@@ -1356,7 +1363,7 @@ function App() {
                 margin={{
                   top: 45,
                   right: 25,
-                  bottom: 10,
+                  bottom: 35,
                   left: 10,
                 }}
               >
@@ -1367,7 +1374,8 @@ function App() {
                 <XAxis
                   dataKey="month"
                   interval={0}
-                  height={48}
+                  height={64}
+                  tickMargin={8}
                   tick={<MonthTick />}
                 />
 
@@ -1397,7 +1405,10 @@ function App() {
                   ]}
                 />
 
-                <Legend />
+                <Legend
+                  verticalAlign="bottom"
+                  height={28}
+                />
 
                 {/* NON-LIQUID ASSETS */}
                 <Bar
